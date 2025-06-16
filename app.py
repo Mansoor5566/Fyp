@@ -64,7 +64,7 @@ model.head = nn.Sequential(
 model = model.to(device)
 
 try:
-    state_dict = torch.load("swin_model.pth", map_location=device)
+    state_dict = torch.load("swin_model.pth", map_location=device, weights_only=False)  # <- fix here
     for key in list(state_dict.keys()):
         if key.startswith("head.") and key not in model.state_dict():
             del state_dict[key]
@@ -73,6 +73,7 @@ try:
 except Exception as e:
     st.error(f"❌ Error loading model weights: {e}")
     st.stop()
+
 
 # ----------------- File Upload -----------------
 uploaded_file = st.file_uploader("📤 Upload a fundus image", type=["jpg", "jpeg", "png"])
