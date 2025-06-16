@@ -6,9 +6,9 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
-
-
-
+import gdown
+import os
+import urllib.request
 
 
 # ----------------- Page Config & Style -----------------
@@ -41,18 +41,18 @@ model = swin_t(weights=weights)
 for param in model.parameters():
     param.requires_grad = False
 
-    import os
-import urllib.request
+    
 
-MODEL_URL = "https://drive.google.com/uc?export=download&id=19pXpKWUQnh0HxzuHODOXysFtJ_W46bcV"
-MODEL_PATH = "swin_model.pth"
+
 
 # Download if not exists
+MODEL_URL = "https://drive.google.com/uc?id=19pXpKWUQnh0HxzuHODOXysFtJ_W46bcV"
+MODEL_PATH = "swin_model.pth"
+
 if not os.path.exists(MODEL_PATH):
     with st.spinner("🔄 Downloading model... Please wait."):
-        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
         st.success("✅ Model downloaded!")
-
 
 # Replace classification head
 model.head = nn.Sequential(
