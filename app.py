@@ -64,7 +64,7 @@ model.head = nn.Sequential(
 model = model.to(device)
 
 try:
-    state_dict = torch.load("swin_model.pth", map_location=device, weights_only=False)  # <- fix here
+    state_dict = torch.load("swin_model.pth", map_location=device, weights_only=False)  
     for key in list(state_dict.keys()):
         if key.startswith("head.") and key not in model.state_dict():
             del state_dict[key]
