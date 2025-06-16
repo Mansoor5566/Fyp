@@ -8,8 +8,6 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import gdown
 import os
-import urllib.request
-
 
 # ----------------- Page Config & Style -----------------
 st.set_page_config(page_title="Diabetic Retinopathy Detection", layout="centered")
@@ -41,11 +39,7 @@ model = swin_t(weights=weights)
 for param in model.parameters():
     param.requires_grad = False
 
-    
-
-
-
-# Download if not exists
+# ----------------- Download Model -----------------
 MODEL_URL = "https://drive.google.com/uc?id=19pXpKWUQnh0HxzuHODOXysFtJ_W46bcV"
 MODEL_PATH = "swin_model.pth"
 
@@ -54,7 +48,7 @@ if not os.path.exists(MODEL_PATH):
         gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
         st.success("✅ Model downloaded!")
 
-# Replace classification head
+# ----------------- Replace Classification Head -----------------
 model.head = nn.Sequential(
     nn.Linear(model.head.in_features, 512),
     nn.ReLU(),
@@ -63,8 +57,9 @@ model.head = nn.Sequential(
 )
 model = model.to(device)
 
+# ----------------- Load State Dict -----------------
 try:
-    state_dict = torch.load("swin_model.pth", map_location=device, weights_only=False)  
+    state_dict = torch.load(MODEL_PATH, map_location=device)
     for key in list(state_dict.keys()):
         if key.startswith("head.") and key not in model.state_dict():
             del state_dict[key]
@@ -73,7 +68,6 @@ try:
 except Exception as e:
     st.error(f"❌ Error loading model weights: {e}")
     st.stop()
-
 
 # ----------------- File Upload -----------------
 uploaded_file = st.file_uploader("📤 Upload a fundus image", type=["jpg", "jpeg", "png"])
@@ -88,13 +82,13 @@ def generate_gradcam(pil_img, model, input_tensor, class_index):
     img_np = np.clip(img_np, 0, 1)
 
     try:
-        # Attempt to select a valid layer for Swin-T
+        # Attempt to select a valid layer
         target_layers = [model.features[-1][-1].norm1]
     except Exception:
         try:
             target_layers = [model.features[-1].blocks[-1].norm1]
         except Exception:
-            return None  # Couldn't find target layer
+            return None
 
     try:
         cam = GradCAM(model=model, target_layers=target_layers)
@@ -104,7 +98,6 @@ def generate_gradcam(pil_img, model, input_tensor, class_index):
     except Exception as e:
         print(f"Grad-CAM internal error: {e}")
         return None
-
 
 # ----------------- Inference -----------------
 if uploaded_file is not None:
@@ -147,5 +140,5 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"⚠️ Error: {e}")
 
-# Close main box
+# ----------------- Close Main Box -----------------
 st.markdown("</div>", unsafe_allow_html=True)
